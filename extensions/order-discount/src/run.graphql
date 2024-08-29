@@ -14,9 +14,8 @@ query RunInput {
         ... on ProductVariant {
           product {
             id
-            hasTags {
-              tag
-            }
+            hasAnyTag
+            productType
           }
         }
       }
