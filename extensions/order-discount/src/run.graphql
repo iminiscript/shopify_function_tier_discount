@@ -12,6 +12,7 @@ query RunInput {
       merchandise {
         __typename
         ... on ProductVariant {
+          id
           product {
             id
             hasAnyTag
@@ -26,4 +27,10 @@ query RunInput {
       }
     }
   }
+  shop {
+    metafield(namespace: "testing-app-allocator", key: "per-cart-cap") {
+      value
+    }
+  }
 }
+
