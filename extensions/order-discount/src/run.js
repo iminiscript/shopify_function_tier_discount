@@ -7,10 +7,10 @@ const EMPTY_DISCOUNT = {
 
 // Updated Discount thresholds and percentages
 const DISCOUNT_TIERS = [
-  { threshold: 450, percentage: 100 },  // 40% for subtotals equal to or above 4000
-  { threshold: 350, percentage: 70 },  // 30% for subtotals from 3000 to 3999
+  //{ threshold: 450, percentage: 100 },  // 40% for subtotals equal to or above 4000
+  { threshold: 400, percentage: 100 },  // 30% for subtotals from 3000 to 3999
   { threshold: 250, percentage: 50 },  // 20% for subtotals from 2000 to 2999
-  { threshold: 100, percentage: 10 },
+  { threshold: 150, percentage: 15 },
   { threshold:   0, percentage:  0 },  // 10% for subtotals from 1000 to 1999
 ];
 
