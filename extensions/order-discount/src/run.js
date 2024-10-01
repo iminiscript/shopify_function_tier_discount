@@ -7,16 +7,27 @@ const EMPTY_DISCOUNT = {
 
 // Updated Discount thresholds and percentages
 const DISCOUNT_TIERS = [
-  //{ threshold: 450, percentage: 100 },  // 40% for subtotals equal to or above 4000
-  { threshold: 400, percentage: 100 },  // 30% for subtotals from 3000 to 3999
-  { threshold: 250, percentage: 50 },  // 20% for subtotals from 2000 to 2999
-  { threshold: 150, percentage: 15 },
-  { threshold:   0, percentage:  0 },  // 10% for subtotals from 1000 to 1999
+  { threshold: 400, percentage: 100 },  // 100% for subtotals equal to or above 400
+  { threshold: 250, percentage: 50 },   // 50% for subtotals from 250 to 399
+  { threshold: 150, percentage: 15 },   // 15% for subtotals from 150 to 249
+  { threshold: 0, percentage: 0 },      // 0% for subtotals below 150
 ];
 
 export function run(input) {
+  const { cart } = input;
+
+  // Check if all cart lines have the GWP product
+  const allItemsHaveGWP = cart.lines.every(line => 
+    line.tier_discount && line.tier_discount.value === "true"
+  );
+
+  // If not all items have GWP, return empty discount
+  if (!allItemsHaveGWP) {
+    return EMPTY_DISCOUNT;
+  }
+
   // Get the subtotal amount directly from the input
-  const subtotalAmount = parseFloat(input.cart.cost.subtotalAmount.amount);
+  const subtotalAmount = parseFloat(cart.cost.subtotalAmount.amount);
 
   // Determine the discount percentage based on the subtotal amount
   let discountPercentage = 0;
@@ -27,6 +38,7 @@ export function run(input) {
     }
   }
 
+  // If the discount is 0, return the empty discount
   if (discountPercentage === 0) {
     return EMPTY_DISCOUNT;
   } else {
@@ -37,7 +49,7 @@ export function run(input) {
           message: `${discountPercentage}USD OFF for spending over $${DISCOUNT_TIERS.find(tier => tier.percentage === discountPercentage).threshold}`,
           value: {
             fixedAmount: {
-              amount: discountPercentage, // Convert to string with two decimal places
+              amount: discountPercentage.toFixed(2), // Convert to string with two decimal places
             },
           },
           targets: [
@@ -52,6 +64,66 @@ export function run(input) {
     };
   }
 }
+
+
+
+
+
+
+// import { DiscountApplicationStrategy } from "../generated/api";
+
+// const EMPTY_DISCOUNT = {
+//   discountApplicationStrategy: DiscountApplicationStrategy.First,
+//   discounts: [],
+// };
+
+// // Updated Discount thresholds and percentages
+// const DISCOUNT_TIERS = [
+//   //{ threshold: 450, percentage: 100 },  // 40% for subtotals equal to or above 4000
+//   { threshold: 400, percentage: 100 },  // 30% for subtotals from 3000 to 3999
+//   { threshold: 250, percentage: 50 },  // 20% for subtotals from 2000 to 2999
+//   { threshold: 150, percentage: 15 },
+//   { threshold:   0, percentage:  0 },  // 10% for subtotals from 1000 to 1999
+// ];
+
+// export function run(input) {
+//   // Get the subtotal amount directly from the input
+//   const subtotalAmount = parseFloat(input.cart.cost.subtotalAmount.amount);
+
+//   // Determine the discount percentage based on the subtotal amount
+//   let discountPercentage = 0;
+//   for (const tier of DISCOUNT_TIERS) {
+//     if (subtotalAmount >= tier.threshold) {
+//       discountPercentage = tier.percentage;
+//       break; // Exit loop once the correct tier is found
+//     }
+//   }
+
+//   if (discountPercentage === 0) {
+//     return EMPTY_DISCOUNT;
+//   } else {
+//     return {
+//       discountApplicationStrategy: DiscountApplicationStrategy.First,
+//       discounts: [
+//         {
+//           message: `${discountPercentage}USD OFF for spending over $${DISCOUNT_TIERS.find(tier => tier.percentage === discountPercentage).threshold}`,
+//           value: {
+//             fixedAmount: {
+//               amount: discountPercentage, // Convert to string with two decimal places
+//             },
+//           },
+//           targets: [
+//             {
+//               orderSubtotal: {
+//                 excludedVariantIds: []
+//               }
+//             }
+//           ],
+//         },
+//       ],
+//     };
+//   }
+// }
 
 
 

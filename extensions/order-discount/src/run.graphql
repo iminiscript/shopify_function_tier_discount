@@ -9,6 +9,9 @@ query RunInput {
           currencyCode
         }
       }
+      tier_discount: attribute(key: "_isDiscount") {
+        value
+      }
       merchandise {
         __typename
         ... on ProductVariant {
