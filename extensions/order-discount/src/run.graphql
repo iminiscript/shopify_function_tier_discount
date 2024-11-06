@@ -18,7 +18,6 @@ query RunInput {
           id
           product {
             id
-            hasAnyTag
             productType
           }
         }
@@ -33,7 +32,18 @@ query RunInput {
   shop {
     metafield(namespace: "testing-app-allocator", key: "per-cart-cap") {
       value
+    }    
+  }
+
+  localization {
+    country {
+      isoCode
+    }
+    market {
+      handle 
+      id
     }
   }
+  presentmentCurrencyRate 
 }
 
