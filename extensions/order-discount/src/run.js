@@ -5,16 +5,32 @@ const EMPTY_DISCOUNT = {
   discounts: [],
 };
 
-// Updated Discount thresholds and percentages
+// Updated Discount thresholds and fixed discount amounts
 const DISCOUNT_TIERS = [
-  { threshold: 400, percentage: 100 },  // 100% for subtotals equal to or above 400
-  { threshold: 250, percentage: 50 },   // 50% for subtotals from 250 to 399
-  { threshold: 150, percentage: 15 },   // 15% for subtotals from 150 to 249
-  { threshold: 0, percentage: 0 },      // 0% for subtotals below 150
+  { threshold: 400, discountAmount: 100 },  // $100 off for subtotals equal to or above $400
+  { threshold: 250, discountAmount: 50 },   // $50 off for subtotals from $250 to $399
+  { threshold: 150, discountAmount: 15 },   // $15 off for subtotals from $150 to $249
+  { threshold: 0, discountAmount: 0 },      // No discount for subtotals below $150
 ];
 
 export function run(input) {
-  const { cart } = input;
+  const { cart, presentmentCurrencyRate } = input;
+  const exchangeRate = parseFloat(presentmentCurrencyRate);
+
+  // Get the subtotal amount from the input and adjust for exchange rate
+  const subtotalAmount = parseFloat(cart.cost.subtotalAmount.amount) * exchangeRate;
+
+  // Determine the discount amount based on the converted subtotal amount
+  let discountAmount = 0;
+  let adjustedThreshold = 0;
+
+  for (const tier of DISCOUNT_TIERS) {
+    if (subtotalAmount >= tier.threshold * exchangeRate) {
+      discountAmount = tier.discountAmount * exchangeRate; // Adjust discount for presentment currency
+      adjustedThreshold = tier.threshold * exchangeRate;   // Adjust threshold for display
+      break; // Exit loop once the correct tier is found
+    }
+  }
 
   // Check if all cart lines have the GWP product
   const allItemsHaveGWP = cart.lines.every(line => 
@@ -26,30 +42,18 @@ export function run(input) {
     return EMPTY_DISCOUNT;
   }
 
-  // Get the subtotal amount directly from the input
-  const subtotalAmount = parseFloat(cart.cost.subtotalAmount.amount);
-
-  // Determine the discount percentage based on the subtotal amount
-  let discountPercentage = 0;
-  for (const tier of DISCOUNT_TIERS) {
-    if (subtotalAmount >= tier.threshold) {
-      discountPercentage = tier.percentage;
-      break; // Exit loop once the correct tier is found
-    }
-  }
-
-  // If the discount is 0, return the empty discount
-  if (discountPercentage === 0) {
+  // If there's no discount, return the empty discount
+  if (discountAmount === 0) {
     return EMPTY_DISCOUNT;
   } else {
     return {
       discountApplicationStrategy: DiscountApplicationStrategy.First,
       discounts: [
         {
-          message: `${discountPercentage}USD OFF for spending over $${DISCOUNT_TIERS.find(tier => tier.percentage === discountPercentage).threshold}`,
+          message: `$${discountAmount.toFixed()} OFF for spending over $${adjustedThreshold.toFixed()}`,
           value: {
             fixedAmount: {
-              amount: discountPercentage.toFixed(2), // Convert to string with two decimal places
+              amount: discountAmount.toFixed(), // Fixed discount amount with two decimal places
             },
           },
           targets: [
@@ -64,6 +68,67 @@ export function run(input) {
     };
   }
 }
+
+
+// import { DiscountApplicationStrategy } from "../generated/api";
+
+// const EMPTY_DISCOUNT = {
+//   discountApplicationStrategy: DiscountApplicationStrategy.First,
+//   discounts: [],
+// };
+
+// // Updated Discount thresholds and percentages
+// const DISCOUNT_TIERS = [
+//   { threshold: 400, percentage: 100 },  // 100% for subtotals equal to or above 400
+//   { threshold: 250, percentage: 50 },   // 50% for subtotals from 250 to 399
+//   { threshold: 150, percentage: 15 },   // 15% for subtotals from 150 to 249
+//   { threshold: 0, percentage: 0 },      // 0% for subtotals below 150
+// ];
+
+// export function run(input) {
+//   const { cart, presentmentCurrencyRate } = input;
+//   const exchangeRate = parseFloat(presentmentCurrencyRate);
+
+
+
+//   // Get the subtotal amount directly from the input
+//   const subtotalAmount = parseFloat(cart.cost.subtotalAmount.amount) * exchangeRate;
+
+//   // Determine the discount percentage based on the subtotal amount
+//   let discountPercentage = 0;
+//   for (const tier of DISCOUNT_TIERS) {
+//     if (subtotalAmount >= tier.threshold * exchangeRate) {
+//       discountPercentage = tier.percentage * exchangeRate;
+//       break; // Exit loop once the correct tier is found
+//     }
+//   }
+
+//   // If the discount is 0, return the empty discount
+//   if (discountPercentage === 0) {
+//     return EMPTY_DISCOUNT;
+//   } else {
+//     return {
+//       discountApplicationStrategy: DiscountApplicationStrategy.First,
+//       discounts: [
+//         {
+//           message: `${discountPercentage}USD OFF for spending over $${DISCOUNT_TIERS.find(tier => tier.percentage === discountPercentage).threshold}`,
+//           value: {
+//             fixedAmount: {
+//               amount: (discountPercentage * exchangeRate).toFixed(2), // Convert to string with two decimal places
+//             },
+//           },
+//           targets: [
+//             {
+//               orderSubtotal: {
+//                 excludedVariantIds: []
+//               }
+//             }
+//           ],
+//         },
+//       ],
+//     };
+//   }
+// }
 
 
 
