@@ -5,39 +5,44 @@ const EMPTY_DISCOUNT = {
   discounts: [],
 };
 
-// Updated Discount thresholds and fixed discount amounts
-const DISCOUNT_TIERS = [
-  { threshold: 400, discountAmount: 100 },  // $100 off for subtotals equal to or above $400
-  { threshold: 250, discountAmount: 50 },   // $50 off for subtotals from $250 to $399
-  { threshold: 150, discountAmount: 15 },   // $15 off for subtotals from $150 to $249
-  { threshold: 0, discountAmount: 0 },      // No discount for subtotals below $150
-];
 
 export function run(input) {
   const { cart, presentmentCurrencyRate } = input;
   const exchangeRate = parseFloat(presentmentCurrencyRate);
 
+  // Updated Discount thresholds and fixed discount amounts
+const DISCOUNT_TIERS = [
+  { threshold: (400 * exchangeRate).toFixed() , discountAmount: (100 * exchangeRate).toFixed() },  // $100 off for subtotals equal to or above $400
+  { threshold: (250 * exchangeRate).toFixed(), discountAmount: (50 * exchangeRate).toFixed() },   // $50 off for subtotals from $250 to $399
+  { threshold: (150 * exchangeRate).toFixed(), discountAmount: (15 * exchangeRate).toFixed()},   // $15 off for subtotals from $150 to $249
+  { threshold: (0 * exchangeRate).toFixed(), discountAmount: (0 * exchangeRate).toFixed()},      // No discount for subtotals below $150
+];
+
   // Get the subtotal amount from the input and adjust for exchange rate
-  const subtotalAmount = parseFloat(cart.cost.subtotalAmount.amount) * exchangeRate;
+  const subtotalAmount = parseFloat(cart.cost.subtotalAmount.amount);
 
   // Determine the discount amount based on the converted subtotal amount
   let discountAmount = 0;
   let adjustedThreshold = 0;
 
+  console.log("Discounts:", JSON.stringify(DISCOUNT_TIERS, null, 2));
+
   for (const tier of DISCOUNT_TIERS) {
-    if (subtotalAmount >= tier.threshold * exchangeRate) {
-      discountAmount = tier.discountAmount * exchangeRate; // Adjust discount for presentment currency
-      adjustedThreshold = tier.threshold * exchangeRate;   // Adjust threshold for display
+    if (subtotalAmount >= tier.threshold) {
+      discountAmount = tier.discountAmount; // Adjust discount for presentment currency
+      console.log(`🚀 ~ file: run.js:30 ~ run ~ discountAmount:`, discountAmount)
+      adjustedThreshold = tier.threshold;   // Adjust threshold for display
+      console.log(`🚀 ~ file: run.js:31 ~ run ~ adjustedThreshold:`, adjustedThreshold)
       break; // Exit loop once the correct tier is found
     }
   }
 
-  // Check if all cart lines have the GWP product
+ // Check if all cart lines have the GWP product
   const allItemsHaveGWP = cart.lines.every(line => 
     line.tier_discount && line.tier_discount.value === "true"
   );
 
-  // If not all items have GWP, return empty discount
+ // If not all items have GWP, return empty discount
   if (!allItemsHaveGWP) {
     return EMPTY_DISCOUNT;
   }
@@ -50,10 +55,10 @@ export function run(input) {
       discountApplicationStrategy: DiscountApplicationStrategy.First,
       discounts: [
         {
-          message: `$${discountAmount.toFixed()} OFF for spending over $${adjustedThreshold.toFixed()}`,
+          message: `$${discountAmount} OFF for $${adjustedThreshold}`,
           value: {
             fixedAmount: {
-              amount: discountAmount.toFixed(), // Fixed discount amount with two decimal places
+              amount: discountAmount, // Fixed discount amount with two decimal places
             },
           },
           targets: [
